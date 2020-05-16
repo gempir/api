@@ -13,6 +13,7 @@ require (
 	golang.org/x/sys v0.0.0-20200301040627-c5d0d7b4ec88 // indirect
 	google.golang.org/api v0.19.0
 	google.golang.org/genproto v0.0.0-20200228133532-8c2c7df3a383 // indirect
+	gopkg.in/h2non/bimg.v1 v1.0.19
 )
 
 go 1.13

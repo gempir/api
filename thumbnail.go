@@ -1,12 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"image"
-	"image/gif"
-	"image/jpeg"
-	"image/png"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -15,7 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/nfnt/resize"
+	"gopkg.in/h2non/bimg.v1"
 )
 
 var (
@@ -66,7 +62,7 @@ func doThumbnailRequest(urlString string, r *http.Request) (interface{}, error, 
 		return rNoLinkInfoFound, nil, noSpecialDur
 	}
 
-	image, err := buildThumbnailByteArray(resp)
+	image, err := buildResizedThumbnail(resp)
 	if err != nil {
 		log.Println(err.Error())
 		return rNoLinkInfoFound, nil, noSpecialDur
@@ -113,24 +109,21 @@ func handleThumbnail(router *mux.Router) {
 	router.HandleFunc("/thumbnail/{url:.*}", thumbnail).Methods("GET")
 }
 
-func buildThumbnailByteArray(resp *http.Response) ([]byte, error) {
-	image, _, err := image.Decode(resp.Body)
+func buildResizedThumbnail(resp *http.Response) ([]byte, error) {
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return []byte{}, fmt.Errorf("Could not deocde image from url: %s", resp.Request.URL)
 	}
 
-	resized := resize.Thumbnail(maxThumbnailSize, maxThumbnailSize, image, resize.Bilinear)
-	buffer := new(bytes.Buffer)
-	if resp.Header.Get("content-type") == "image/png" {
-		err = png.Encode(buffer, resized)
-	} else if resp.Header.Get("content-type") == "image/gif" {
-		err = gif.Encode(buffer, resized, nil)
-	} else if resp.Header.Get("content-type") == "image/jpeg" {
-		err = jpeg.Encode(buffer, resized, nil)
-	}
+	converted, err := bimg.NewImage(body).Convert(bimg.WEBP)
 	if err != nil {
-		return []byte{}, fmt.Errorf("Could not encode image from url: %s", resp.Request.URL)
+		return []byte{}, fmt.Errorf("Could not convert image from url: %s, error: %s", resp.Request.URL, err.Error())
 	}
 
-	return buffer.Bytes(), nil
+	resized, err := bimg.NewImage(converted).Resize(maxThumbnailSize, maxThumbnailSize)
+	if err != nil {
+		return []byte{}, fmt.Errorf("Could not resize image from url: %s, error: %s", resp.Request.URL, err.Error())
+	}
+
+	return resized, nil
 }

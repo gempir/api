@@ -6,6 +6,18 @@ Go web service that serves as a cache to APIs that each Chatterino client could 
 
 Emote data is served cached from [twitchemotes.com](https://twitchemotes.com/).
 
+# Install
+
+libvips is required for the image resizing
+https://github.com/h2non/bimg#libvips
+
+To support animated gifs (output webp) we need atleast version 8.8
+
+Also install these for proper gif/webp support
+
+`sudo apt install libwebp-dev libgif-dev`
+
+
 ## Routes
 `/twitchemotes/set/:setID`  
 returns information about a given twitch emote set. Example response:

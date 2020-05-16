@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"gopkg.in/h2non/bimg.v1"
 )
 
 const (
@@ -40,6 +41,7 @@ func listen(host string, router *mux.Router) {
 	}
 
 	log.Println("Listening on", host)
+	log.Println("Using libvips " + bimg.VipsVersion)
 	log.Fatal(srv.ListenAndServe())
 }
 
